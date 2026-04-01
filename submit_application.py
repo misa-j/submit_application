@@ -12,7 +12,7 @@ def main():
     email = os.getenv("EMAIL")
     resume_link = os.getenv("RESUME_LINK")
     repository_link = os.getenv("REPOSITORY_LINK")
-    secret = os.getenv("SECRET")
+    secret = bytearray(os.getenv("SECRET"), 'utf-8')
 
     if not all([name, email, resume_link, repository_link]):
         print("Error: Missing one or more required environment variables.")
