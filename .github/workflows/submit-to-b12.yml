@@ -10,7 +10,7 @@ on:
         description: "Your email address"
         required: true
       resume_link:
-        description: "Link to your resume (PDF, HTML, or LinkedIn)"
+        description: "Link to your resume (PDF, HTML, LinkedIn, etc.)"
         required: true
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -26,13 +26,13 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Install requests
+      - name: Install dependencies
         run: pip install requests
 
-      - name: Submit application to B12
+      - name: Submit to B12
         env:
-          NAME: ${{ inputs.name || 'Misa Jakovljevic' }}
-          EMAIL: ${{ inputs.email || 'misajakovljevic3@gmail.com' }}
+          NAME: ${{ inputs.name }}
+          EMAIL: ${{ inputs.email }}
           RESUME_LINK: ${{ inputs.resume_link }}
           REPOSITORY_LINK: ${{ github.server_url }}/${{ github.repository }}
         run: python submit_application.py

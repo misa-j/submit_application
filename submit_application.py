@@ -2,56 +2,70 @@ import os
 import sys
 import json
 import requests
+import hmac
+import hashlib
 from datetime import datetime
 
-
 def main():
-    # Get inputs from environment variables (set in GitHub Actions)
+    # Required inputs
     name = os.getenv("NAME")
     email = os.getenv("EMAIL")
     resume_link = os.getenv("RESUME_LINK")
     repository_link = os.getenv("REPOSITORY_LINK")
 
     if not all([name, email, resume_link, repository_link]):
-        print(
-            "Error: Missing required environment variables (NAME, EMAIL, RESUME_LINK, REPOSITORY_LINK)"
-        )
+        print("Error: Missing one or more required environment variables.")
         sys.exit(1)
 
-    # Generate current ISO 8601 timestamp with milliseconds
-    timestamp = datetime.utcnow().isoformat(timespec="milliseconds") + "Z"
+    # Generate current ISO 8601 timestamp (with milliseconds + Z)
+    timestamp = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
 
-    # GitHub provides these automatically in Actions
-    action_run_link = (
-        os.getenv("GITHUB_SERVER_URL")
-        + "/"
-        + os.getenv("GITHUB_REPOSITORY")
-        + "/actions/runs/"
-        + os.getenv("GITHUB_RUN_ID")
-    )
+    # Build action_run_link automatically (works on GitHub)
+    action_run_link = f"{os.getenv('GITHUB_SERVER_URL')}/{os.getenv('GITHUB_REPOSITORY')}/actions/runs/{os.getenv('GITHUB_RUN_ID')}"
 
+    # Prepare payload with keys in alphabetical order
     payload = {
-        "timestamp": timestamp,
-        "name": name,
-        "email": email,
-        "resume_link": resume_link,
-        "repository_link": repository_link,
         "action_run_link": action_run_link,
+        "email": email,
+        "name": name,
+        "repository_link": repository_link,
+        "resume_link": resume_link,
+        "timestamp": timestamp
     }
 
-    print("Submitting application with payload:")
-    print(json.dumps(payload, indent=2))
+    # Create canonical compact JSON (no extra whitespace, sorted keys)
+    json_body = json.dumps(payload, separators=(',', ':'), sort_keys=True)
+
+    print("Submitting with this exact body:")
+    print(json_body)
+
+    # Compute HMAC-SHA256 signature
+    secret = b"hello-there-from-b12"
+    signature = hmac.new(secret, json_body.encode("utf-8"), hashlib.sha256).hexdigest()
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-Signature-256": f"sha256={signature}"
+    }
 
     url = "https://b12.io/apply/submission"
 
     try:
-        response = requests.post(url, json=payload, timeout=30)
+        response = requests.post(url, data=json_body, headers=headers, timeout=30)
 
-        print(f"Status code: {response.status_code}")
+        print(f"\nStatus code: {response.status_code}")
 
-        if response.ok:
-            print("Application submitted successfully!")
-            print("Response:", response.text)
+        if response.status_code == 200:
+            try:
+                result = response.json()
+                print("Success!")
+                receipt = result.get("receipt")
+                print(f"Receipt: {receipt}")
+                if receipt:
+                    print("\nCopy this receipt and paste it in the application form:")
+                    print(receipt)
+            except:
+                print("Response:", response.text)
         else:
             print("Submission failed")
             print("Response:", response.text)
