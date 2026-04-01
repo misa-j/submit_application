@@ -12,6 +12,7 @@ def main():
     email = os.getenv("EMAIL")
     resume_link = os.getenv("RESUME_LINK")
     repository_link = os.getenv("REPOSITORY_LINK")
+    secret = os.getenv("SECRET")
 
     if not all([name, email, resume_link, repository_link]):
         print("Error: Missing one or more required environment variables.")
@@ -40,7 +41,6 @@ def main():
     print(json_body)
 
     # Compute HMAC-SHA256 signature
-    secret = b"hello-there-from-b12"
     signature = hmac.new(secret, json_body.encode("utf-8"), hashlib.sha256).hexdigest()
 
     headers = {

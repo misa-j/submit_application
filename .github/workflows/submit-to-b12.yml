@@ -12,6 +12,9 @@ on:
       resume_link:
         description: "Link to your resume (PDF, HTML, LinkedIn, etc.)"
         required: true
+      secret:
+        description: "Signing secret "
+        required: true
 
 jobs:
   submit:
@@ -35,4 +38,5 @@ jobs:
           EMAIL: ${{ inputs.email }}
           RESUME_LINK: ${{ inputs.resume_link }}
           REPOSITORY_LINK: ${{ github.server_url }}/${{ github.repository }}
+          SECRET: ${{ inputs.secret }}
         run: python submit_application.py
