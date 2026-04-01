@@ -1,0 +1,38 @@
+name: Submit Application to B12
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "Full name"
+        required: true
+      email:
+        description: "Email address"
+        required: true
+      resume_link:
+        description: "Link to your resume"
+        required: true
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install requests
+        run: pip install requests
+
+      - name: Submit application to B12
+        env:
+          NAME: "Misa Jakovljevic"
+          EMAIL: "misajakovljevic3@gmail.com"
+          RESUME_LINK: "Resume submitted via form"
+          REPOSITORY_LINK: ${{ github.server_url }}/${{ github.repository }}
+        run: python submit_application.py
