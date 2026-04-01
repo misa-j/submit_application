@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       name:
-        description: "Full name"
+        description: "Your full name"
         required: true
       email:
-        description: "Email address"
+        description: "Your email address"
         required: true
       resume_link:
-        description: "Link to your resume"
+        description: "Link to your resume (PDF, HTML, or LinkedIn)"
         required: true
 
 jobs:
@@ -31,8 +31,8 @@ jobs:
 
       - name: Submit application to B12
         env:
-          NAME: "Misa Jakovljevic"
-          EMAIL: "misajakovljevic3@gmail.com"
-          RESUME_LINK: "Resume submitted via form"
+          NAME: ${{ inputs.name || 'Misa Jakovljevic' }}
+          EMAIL: ${{ inputs.email || 'misajakovljevic3@gmail.com' }}
+          RESUME_LINK: ${{ inputs.resume_link }}
           REPOSITORY_LINK: ${{ github.server_url }}/${{ github.repository }}
         run: python submit_application.py
